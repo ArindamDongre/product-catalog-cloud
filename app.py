@@ -7,6 +7,16 @@ app = Flask(__name__)
 def get_db():
     conn = sqlite3.connect("products.db")
     conn.row_factory = sqlite3.Row
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS products (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            price REAL NOT NULL
+        )
+    """)
+    conn.commit()
+
     return conn
 
 @app.route("/")
@@ -22,7 +32,6 @@ def add_product():
         name = request.form["name"]
         price = request.form["price"]
 
-        # handle invalid input
         if name.strip() == "" or price.strip() == "":
             return "Invalid input! Name and price required."
 
