@@ -1,0 +1,41 @@
+from flask import Flask, request, render_template, redirect
+import sqlite3
+
+app = Flask(__name__)
+
+def get_db():
+    conn = sqlite3.connect("products.db")
+    conn.row_factory = sqlite3.Row
+    return conn
+
+@app.route("/")
+def index():
+    conn = get_db()
+    products = conn.execute("SELECT * FROM products").fetchall()
+    conn.close()
+    return render_template("index.html", products=products)
+
+@app.route("/add", methods=["GET","POST"])
+def add_product():
+    if request.method == "POST":
+        name = request.form["name"]
+        price = request.form["price"]
+
+        # handle invalid input
+        if name.strip() == "" or price.strip() == "":
+            return "Invalid input! Name and price required."
+
+        conn = get_db()
+        conn.execute(
+            "INSERT INTO products (name, price) VALUES (?, ?)",
+            (name, price)
+        )
+        conn.commit()
+        conn.close()
+
+        return redirect("/")
+
+    return render_template("add_product.html")
+
+if __name__ == "__main__":
+    app.run(debug=True)
